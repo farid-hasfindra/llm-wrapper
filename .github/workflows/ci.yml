@@ -33,8 +33,8 @@ jobs:
 
     - name: Test with pytest
       env: 
-        GOOGLE_API_KEY: "dummy_key_for_ci" 
-        # We use a dummy key because we shouldn't expose real keys in CI. 
-        # Tests requiring real calls should be mocked.
+        GOOGLE_API_KEY: "dummy_key_for_ci"
+        PYTHONPATH: .
       run: |
         pytest
+
