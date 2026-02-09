@@ -32,15 +32,6 @@ class Orchestrator:
             prompt_tokens = token_manager.estimate_tokens(request.message) 
             completion_tokens = token_manager.estimate_tokens(response_text)
             usage_stats = token_manager.create_usage_report(prompt_tokens, completion_tokens)
-
-            # Record Metrics (RAG)
-            from app.monitoring.custom_metrics import (
-                LLM_REQUESTS_TOTAL, LLM_TOKENS_TOTAL, LLM_COST_TOTAL
-            )
-            LLM_REQUESTS_TOTAL.labels(model="gemini-1.5-flash-rag", status="success").inc()
-            LLM_TOKENS_TOTAL.labels(model="gemini-1.5-flash-rag", type="prompt").inc(usage_stats.prompt_tokens)
-            LLM_TOKENS_TOTAL.labels(model="gemini-1.5-flash-rag", type="completion").inc(usage_stats.completion_tokens)
-            LLM_COST_TOTAL.labels(model="gemini-1.5-flash-rag").inc(usage_stats.estimated_cost)
             
             # Convert to schema
             usage_schema = TokenUsageSchema(
@@ -54,22 +45,13 @@ class Orchestrator:
                 response=response_text, 
                 rag_enabled=True,
                 usage=usage_schema
+                # Todo: pipe sources from RAG pipeline
             )
         else:
             # Direct LLM Flow
             llm_result = await gemini_client.generate_response(request.message)
 
-            # Record Metrics (Direct LLM)
-            from app.monitoring.custom_metrics import (
-                LLM_REQUESTS_TOTAL, LLM_TOKENS_TOTAL, LLM_COST_TOTAL
-            )
-            
-            LLM_REQUESTS_TOTAL.labels(model="gemini-1.5-flash", status="success").inc()
-            
             usage_data = llm_result["usage"]
-            LLM_TOKENS_TOTAL.labels(model="gemini-1.5-flash", type="prompt").inc(usage_data.prompt_tokens)
-            LLM_TOKENS_TOTAL.labels(model="gemini-1.5-flash", type="completion").inc(usage_data.completion_tokens)
-            LLM_COST_TOTAL.labels(model="gemini-1.5-flash").inc(usage_data.estimated_cost)
             
             usage_schema = TokenUsageSchema(
                 prompt_tokens=usage_data.prompt_tokens,
