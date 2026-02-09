@@ -1,104 +1,75 @@
-# Deployment Guide: AWS EC2 (Free Tier)
+# 🚀 Tutorial Deployment: The "Easy & Free" Way (Render.com)
 
-This guide explains how to deploy the LLM Wrapper Portfolio to an AWS EC2 instance using Docker. This approach fits within the **AWS Basic Free Tier** (12 months for new accounts).
+Anda merasa EC2 terlalu ribet (harus SSH, terminal, config Linux)? Tenang, ada **Render.com**.
+Ini adalah layanan **Container-as-a-Service** (mirip AWS ECS) tapi jauh lebih otomatis dan punya **Free Tier**.
 
-## Prerequisites
-- AWS Account.
-- GitHub Account (repo pushed).
-- DockerHub Account (for storing the image).
+Cocok banget untuk Portfolio:
+1.  **Gratis** (untuk hobby project).
+2.  **Otomatis** (Connect GitHub -> Auto Deploy).
+3.  **Docker Native** (Menggunakan `Dockerfile` yang sudah kita buat).
+4.  **Zero Config** (Tidak perlu SSH/Linux).
 
 ---
 
-## Step 1: Push Code to GitHub
-Ensure your code is pushed to GitHub. This will trigger the CI/CD pipeline we created (`.github/workflows/cd.yml`).
-> **Note**: You need to configure GitHub Secrets (`DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`) in your repo settings for the auto-build to work.
+## Langkah 1: Push Code ke GitHub
+Pastikan kode project Anda sudah ada di repository GitHub (Public/Private).
 
-Alternatively, you can build manually on the server (simpler for first time).
+## Langkah 2: Daftar Render
+1.  Buka [dashboard.render.com](https://dashboard.render.com/).
+2.  Login menggunakan akun **GitHub** Anda.
 
-## Step 2: Launch EC2 Instance
-1. **Login** to AWS Console -> **EC2** service.
-2. Click **Launch Instance**.
-3. **Name**: `LLM-Wrapper-Server`.
-4. **OS Image**: Ubuntu Server 22.04 LTS (HVM).
-5. **Instance Type**: `t2.micro` or `t3.micro` (Look for "Free tier eligible" label).
-6. **Key Pair**: Create new login key pair (download the `.pem` file).
-7. **Network settings**:
-   - Allow SSH traffic from Anywhere (0.0.0.0/0) or My IP.
-   - **Check** "Allow HTTP traffic from the internet".
-   - **Check** "Allow HTTPS traffic from the internet".
-8. Launch Instance.
+## Langkah 3: Create Web Service
+1.  Klik tombol **New +** di pojok kanan atas.
+2.  Pilih **Web Service**.
+3.  Pilih **Build and deploy from a Git repository**.
+4.  Pilih repository `llm-wrapper` Anda.
 
-## Step 3: Configure Security Group (Firewall)
-1. Go to your Instance -> **Security** tab -> Click the **Security Group**.
-2. **Edit inbound rules**.
-3. Add Rule:
-   - **Type**: Custom TCP
-   - **Port range**: `8000` (FastAPI default) or `80` (if mapping port).
-   - **Source**: Anywhere-IPv4 (`0.0.0.0/0`).
-4. Save rules.
+## Langkah 4: Konfigurasi (Penting!)
+Isi form dengan setting berikut:
 
-## Step 4: Connect to Server
-Use your terminal (or Putty):
-```bash
-# Set permission for key
-chmod 400 your-key.pem
+*   **Name**: `llm-portfolio` (bebas).
+*   **Region**: `Singapore` (biar cepat).
+*   **Branch**: `main`.
+*   **Root Directory**: (Kosongkan/Default).
+*   **Runtime**: **Docker** (PENTING! Jangan pilih Python, pilih Docker karena kita sudah punya `Dockerfile`).
+*   **Instance Type**: **Free** (0.5 CPU, 512MB RAM).
 
-# SSH into server (replace 1.2.3.4 with your EC2 Public IP)
-ssh -i "your-key.pem" ubuntu@1.2.3.4
-```
+## Langkah 5: Environment Variables (.env)
+Scroll ke bawah ke bagian **Environment Variables**. Masukkan key-value dari file `.env` Anda:
 
-## Step 5: Install Docker on EC2
-Run these commands inside the EC2 server:
-```bash
-# Update repo
-sudo apt-get update
+| Key | Value |
+| :--- | :--- |
+| `PROJECT_NAME` | `LLM-Wrapper` |
+| `GOOGLE_API_KEY` | `AIzaSy....` (Copy dari .env asli Anda) |
+| `ENVIRONMENT` | `production` |
+| `PORT` | `8000` |
 
-# Install Docker
-sudo apt-get install -y docker.io docker-compose
+## Langkah 6: Deploy!
+Klik **Create Web Service**.
 
-# Start Docker
-sudo systemctl start docker
-sudo systemctl enable docker
+Render akan:
+1.  Clone repo Anda.
+2.  Membangun Docker Image (membaca `infra/docker/Dockerfile` otomatis).
+3.  Menjalankan container.
 
-# Allow ubuntu user to run docker (avoid sudo every time)
-sudo usermod -aG docker $USER
-```
-*Logout and login again for permission to take effect.*
+Tunggu sekitar 3-5 menit. Dalah log akan muncul:
+`Release is live` atau `Application startup complete`.
 
-## Step 6: Deploy Application
-### Option A: Clone & Run (Easiest)
-1. Clone your repo:
-   ```bash
-   git clone https://github.com/your-username/llm-wrapper.git
-   cd llm-wrapper
-   ```
-2. Create `.env` file:
-   ```bash
-   nano .env
-   # Paste your environment variables (GOOGLE_API_KEY, etc) then Ctrl+X, Y, Enter.
-   ```
-3. Run with Docker Compose:
-   ```bash
-   docker-compose -f infra/docker/docker-compose.yml up -d --build
-   ```
+## Cek Hasil
+Di pojok kiri atas dashboard Render, ada URL project Anda (misal: `https://llm-portfolio-xyz.onrender.com`).
+Klik URL terseut dan tambahkan `/docs` di belakangnya.
 
-### Option B: Run from DockerHub (If CD is working)
-```bash
-docker run -d \
-  --name llm-app \
-  -p 8000:8000 \
-  -v $(pwd)/data:/app/data \
-  -e GOOGLE_API_KEY="your_actual_api_key_here" \
-  yourusername/llm-wrapper:latest
-```
+Contoh: `https://llm-portfolio-xyz.onrender.com/docs`
 
-## Step 7: Access Your API
-Open your browser:
-`http://<EC2-PUBLIC-IP>:8000/docs`
+**Selamat! Project Anda sudah online!** 🥳
 
-✅ Done! Your API is live on the internet.
+---
 
-## Costs
-- **EC2**: Free for 750h/month (1 instance running 24/7 OK).
-- **Data Transfer**: Small amount free, pay attention if uploading huge files.
-- **Storage (EBS)**: 30GB free.
+# 🤔 FAQ: Kenapa Tidak AWS ECS?
+
+**Tanya**: "Kenapa tidak pakai AWS ECS saja?"
+**Jawab**:
+1.  **ECS Fargate (Mudah)**: **TIDAK GRATIS**. Anda harus bayar per menit CPU/RAM berjalan.
+2.  **ECS EC2 (Gratis)**: **SANGAT RIBET**. Anda harus setup Cluster, Capacity Provider, Auto Scaling Group, VPC Networking, dan Load Balancer secara manual. Jauh lebih ribet dari tutorial EC2 sebelumnya.
+
+Untuk Portfolio pribadi, **Render** atau **Railway** adalah standar industri saat ini karena kemudahannya (Developer Experience).
