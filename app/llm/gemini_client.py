@@ -1,4 +1,3 @@
-import google.generativeai as genai
 from langchain_google_genai import ChatGoogleGenerativeAI
 from app.core.config import settings
 from app.core.logging import logger
@@ -8,7 +7,6 @@ class GeminiClient:
         if not settings.GOOGLE_API_KEY:
             logger.warning("GOOGLE_API_KEY not set. Gemini features will not work.")
         
-        genai.configure(api_key=settings.GOOGLE_API_KEY)
         self.model_name = model_name
         self.temperature = temperature
         self._llm = None
@@ -24,11 +22,33 @@ class GeminiClient:
             )
         return self._llm
 
-    async def generate_response(self, prompt: str) -> str:
+    async def generate_response(self, prompt: str) -> dict:
         try:
             logger.info("generating_response", model=self.model_name)
+            # ainvoke returns an AIMessage object which contains response_metadata
             response = await self.llm.ainvoke(prompt)
-            return response.content
+            
+            content = response.content
+            usage_metadata = response.response_metadata.get("usage_metadata", {})
+            
+            # Extract actual token counts from Gemini response if available
+            prompt_tokens = usage_metadata.get("prompt_token_count", 0)
+            candidates_token_count = usage_metadata.get("candidates_token_count", 0) # Output tokens
+            
+            # If 0 (e.g. some models don't return it), estimate it
+            if prompt_tokens == 0:
+                 prompt_tokens = len(prompt) // 4
+            if candidates_token_count == 0:
+                 candidates_token_count = len(content) // 4
+
+            from app.llm.token_manager import token_manager
+            usage_stats = token_manager.create_usage_report(prompt_tokens, candidates_token_count)
+            
+            return {
+                "content": content,
+                "usage": usage_stats
+            }
+
         except Exception as e:
             logger.error("gemini_generation_failed", error=str(e))
             raise e

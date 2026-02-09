@@ -11,18 +11,11 @@ router = APIRouter()
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest, api_key: str = Depends(get_api_key)):
     """
-    Chat with the LLM. Optionally use RAG.
+    Chat with the LLM via the Orchestrator.
     """
     try:
-        logger.info("request_received", use_rag=request.use_rag)
-        
-        if request.use_rag:
-            response_text = await generate_rag_response(request.message)
-            # Todo: Return source documents if needed.
-            return ChatResponse(response=response_text)
-        else:
-            response_text = await gemini_client.generate_response(request.message)
-            return ChatResponse(response=response_text)
+        from app.orchestration.orchestrator import orchestrator
+        return await orchestrator.handle_request(request, user_id="user_api_key")
             
     except Exception as e:
         logger.error("chat_endpoint_error", error=str(e))

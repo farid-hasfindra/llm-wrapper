@@ -30,5 +30,5 @@ from app.api.v1 import chat, health, admin, documents
 
 app.include_router(chat.router, prefix=settings.API_V1_STR, tags=["chat"])
 app.include_router(health.router, prefix=settings.API_V1_STR, tags=["health"])
-app.include_router(admin.router, prefix=settings.API_V1_STR, tags=["admin"])
+app.include_router(admin.router, prefix=f"{settings.API_V1_STR}/admin", tags=["admin"])
 app.include_router(documents.router, prefix=f"{settings.API_V1_STR}/documents", tags=["documents"])
