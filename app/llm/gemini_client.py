@@ -3,7 +3,7 @@ from app.core.config import settings
 from app.core.logging import logger
 
 class GeminiClient:
-    def __init__(self, model_name: str = "gemini-2.5-flash", temperature: float = 0.7):
+    def __init__(self, model_name: str = "gemini-1.5-flash", temperature: float = 0.7):
         if not settings.GOOGLE_API_KEY:
             logger.warning("GOOGLE_API_KEY not set. Gemini features will not work.")
         

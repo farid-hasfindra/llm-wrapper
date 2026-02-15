@@ -329,7 +329,9 @@ if active["messages"] and active["messages"][-1]["role"] == "user":
                     ph.markdown(d["response"])
                     st.caption(f"💰 ${d.get('usage',{}).get('estimated_cost',0):.6f}")
                     active["messages"].append({"role": "assistant", "content": d["response"], "usage": d.get("usage",{})})
+                elif res.status_code == 429 or "RESOURCE_EXHAUSTED" in res.text:
+                    ph.error("⚠️ **Daily Quota Exceeded**\nYou have hit the free tier limit for the Gemini API. Please try again later or switch API keys.")
                 else:
-                    ph.error(res.text)
+                    ph.error(f"Error {res.status_code}: {res.text}")
         except Exception as e:
             ph.error(str(e))
