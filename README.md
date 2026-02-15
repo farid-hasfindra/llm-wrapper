@@ -40,9 +40,15 @@ uvicorn app.main:app --reload
 python scripts/ingest_docs.py
 ```
 
+
 **Docker:**
 ```bash
 docker-compose -f infra/docker/docker-compose.yml up --build
+```
+
+**Frontend (Streamlit):**
+```bash
+streamlit run frontend/app.py
 ```
 
 ## API Documentation
