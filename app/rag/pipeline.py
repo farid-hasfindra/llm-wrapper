@@ -1,7 +1,7 @@
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from app.llm.gemini_client import gemini_client
+from app.llm.groq_client import groq_client
 from app.rag.retriever import get_retriever
 from app.core.logging import logger
 
@@ -17,7 +17,7 @@ def get_rag_chain():
     Constructs the RAG chain.
     """
     retriever = get_retriever()
-    llm = gemini_client.llm
+    llm = groq_client.llm
     
     prompt = ChatPromptTemplate.from_template(RAG_TEMPLATE)
     

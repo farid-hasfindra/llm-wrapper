@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.schemas.request import ChatRequest
 from app.schemas.response import ChatResponse
-from app.llm.gemini_client import gemini_client
+from app.llm.groq_client import groq_client
 from app.rag.pipeline import generate_rag_response
 from app.core.security import get_api_key
 from app.core.logging import logger

@@ -1,6 +1,6 @@
 from app.schemas.request import ChatRequest
 from app.schemas.response import ChatResponse, TokenUsageSchema
-from app.llm.gemini_client import gemini_client
+from app.llm.groq_client import groq_client
 from app.rag.pipeline import generate_rag_response
 from app.core.logging import logger
 from app.llm.token_manager import token_manager
@@ -49,7 +49,7 @@ class Orchestrator:
             )
         else:
             # Direct LLM Flow
-            llm_result = await gemini_client.generate_response(request.message)
+            llm_result = await groq_client.generate_response(request.message)
 
             usage_data = llm_result["usage"]
             
