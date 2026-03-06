@@ -1,55 +1,119 @@
-# LLM Wrapper Portfolio Project
+# AI Engineer Portfolio: LLM Wrapper API 🚀
 
-A production-grade LLM Wrapper built with FastAPI, LangChain, and Google Gemini.
+A production-grade, headless REST API demonstrating advanced AI Engineering patterns. It seamlessly orchestrates ultra-fast text generation via **Groq** and Retrieval-Augmented Generation (RAG) using **Google Gemini Embeddings** and **ChromaDB**.
 
-## Features
-- **FastAPI**: High performance, easy to learn, fast to code, ready for production.
-- **LangChain**: Building applications with LLMs through composability.
-- **RAG (Retrieval Augmented Generation)**: Chat with your data using Gemini Embeddings and ChromaDB.
-- **Structured Logging**: JSON logs for easy observability.
-- **Dockerized**: Ready for deployment.
+Designed specifically as a robust backend for modern Frontend/Fullstack AI applications.
 
-## Quick Start
+---
 
-### Prerequisites
+## 🛠️ Tech Stack
+- **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Python Async API)
+- **AI Orchestration**: [LangChain](https://python.langchain.com/)
+- **Inference Engine (Chat)**: [Groq Cloud](https://console.groq.com/) (`llama-3.3-70b-versatile`)
+- **Embeddings Engine (RAG)**: [Google Gemini](https://ai.google.dev/) (`models/gemini-embedding-001`)
+- **Vector Database**: [ChromaDB](https://www.trychroma.com/) (Local embedded)
+
+---
+
+## 🚀 Getting Started (Local Development)
+
+### 1. Prerequisites
 - Python 3.10+
-- Google API Key
+- A valid **Groq API Key** (Create one at [console.groq.com](https://console.groq.com/keys))
+- A valid **Google Gemini API Key** (Create one at [aistudio.google.com](https://aistudio.google.com/app/apikey))
 
-### Installation
+### 2. Installation & Setup
+Clone the repository and install dependencies:
+```bash
+# Create virtual environment (Optional but recommended)
+python -m venv venv
+# Activate it (Windows)
+.\venv\Scripts\Activate.ps1
+# Activate it (Mac/Linux)
+source venv/bin/activate
 
-1. Clone the repo
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Configure `.env`:
-   ```bash
-   cp .env.example .env
-   # Edit .env and set GOOGLE_API_KEY
-   ```
+# Install dependencies
+pip install -r requirements.txt
+```
 
-### Running
+Configure your environment variables:
+```bash
+# Copy example env file
+cp .env.example .env
+```
+Open `.env` and fill in your API keys:
+```env
+GOOGLE_API_KEY=your_google_germini_api_key
+GROQ_API_KEY=your_groq_api_key
+```
 
-**Start the API:**
+### 3. Running the Server
+Start the FastAPI server with hot-reload enabled:
 ```bash
 uvicorn app.main:app --reload
 ```
+The API is now running at `http://127.0.0.1:8000`.
 
-**Ingest Documents for RAG:**
-```bash
-python scripts/ingest_docs.py
+---
+
+## 📚 API Reference for Frontend Developers
+
+Once the server is running, the interactive Swagger documentation is available at:
+👉 **[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)**
+
+Below are the core endpoints you will need to build a UI.
+
+### 1. Chat Completion Endpoint
+Send a message to the AI. You can toggle RAG (Knowledge Base search) on or off.
+
+**POST** `/api/v1/chat`
+
+**Request Body (JSON):**
+```json
+{
+  "message": "What is the capital of France?",
+  "use_rag": false,
+  "conversation_id": null
+}
+```
+*Note: `use_rag: true` forces the API to search uploaded `.txt` files for context before answering.*
+
+**Success Response (200 OK):**
+```json
+{
+  "response": "The capital of France is Paris.",
+  "rag_enabled": false,
+  "sources": [],
+  "usage": {
+    "prompt_tokens": 15,
+    "completion_tokens": 8,
+    "total_tokens": 23,
+    "estimated_cost": 0.000002
+  }
+}
 ```
 
+### 2. Upload Document (RAG Context)
+Upload a `.txt` file to be embedded and added to the AI's knowledge base. The embedding process happens in the background.
 
-**Docker:**
+**POST** `/api/v1/documents/upload`
+
+**Request (FormData):**
+- Key: `file`
+- Value: `[Your File.txt]`
+
+### 3. Manage Documents
+**DELETE** `/api/v1/documents/{filename}`
+Deletes a specific document from the storage and triggers a re-ingestion of remaining files into the Vector DB.
+
+**POST** `/api/v1/documents/reset`
+Wipes the entire Vector DB and deletes all stored files. Perfect for a "Start Fresh" button in your UI.
+
+## 🐳 Docker Deployment
+If you want to run the API via Docker:
 ```bash
+# Build and run using Docker Compose
 docker-compose -f infra/docker/docker-compose.yml up --build
 ```
 
-**Frontend (Streamlit):**
-```bash
-streamlit run frontend/app.py
-```
-
-## API Documentation
-Once running, visit `http://localhost:8000/docs` for Swagger UI.
+For Cloud Run deployment, utilize the included `deploy.ps1` script (Windows only).
