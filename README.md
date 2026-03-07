@@ -1,3 +1,12 @@
+---
+title: SensiBOT
+emoji: 🤖
+colorFrom: green
+colorTo: blue
+sdk: docker
+pinned: false
+---
+
 # AI Engineer Portfolio: LLM Wrapper API 🚀
 
 A production-grade, headless REST API demonstrating advanced AI Engineering patterns. It seamlessly orchestrates ultra-fast text generation via **Groq** and Retrieval-Augmented Generation (RAG) using **Google Gemini Embeddings** and **ChromaDB**.
