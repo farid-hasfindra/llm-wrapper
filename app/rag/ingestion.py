@@ -4,20 +4,22 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from app.rag.vectorstore import get_vectorstore
 from app.core.logging import logger
 
-async def ingest_docs(docs_path: str = "data/docs"):
+async def ingest_docs(user_id: str = "guest", base_docs_path: str = "data/docs"):
     """
-    Ingests documents from a directory into the vector store.
+    Ingests documents from a directory into the vector store for a specific user.
     """
-    if not os.path.exists(docs_path):
-        os.makedirs(docs_path)
-        logger.warning(f"Created {docs_path}. Please add text files there to ingest.")
+    user_docs_path = os.path.join(base_docs_path, user_id)
+    
+    if not os.path.exists(user_docs_path):
+        os.makedirs(user_docs_path)
+        logger.warning(f"Created {user_docs_path}. Please add text files there to ingest.")
         return
 
-    logger.info("loading_documents", path=docs_path)
+    logger.info("loading_documents", path=user_docs_path, user_id=user_id)
     # Load documents
     # Note: DirectoryLoader with glob="**/*.txt" currently only loads .txt files.
     # You can extend this to load .pdf, .docx, etc.
-    loader = DirectoryLoader(docs_path, glob="**/*.txt", loader_cls=TextLoader)
+    loader = DirectoryLoader(user_docs_path, glob="**/*.txt", loader_cls=TextLoader)
     documents = loader.load()
     
     if not documents:
@@ -34,7 +36,7 @@ async def ingest_docs(docs_path: str = "data/docs"):
     
     logger.info("embedding_documents", chunk_count=len(texts))
     # Create/Update Vector Store
-    vectorstore = get_vectorstore()
+    vectorstore = get_vectorstore(user_id=user_id)
     vectorstore.add_documents(texts)
     
-    logger.info("ingestion_complete")
+    logger.info("ingestion_complete", user_id=user_id)

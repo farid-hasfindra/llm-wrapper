@@ -26,7 +26,12 @@ class Orchestrator:
         if use_rag:
             # RAG Flow
             # Currently RAG pipeline returns just a string
-            response_text = await generate_rag_response(request.message)
+            response_text = await generate_rag_response(
+                request.message, 
+                model=request.model, 
+                user_id=user_id,
+                chat_history=request.chat_history
+            )
             
             # Estimate tokens for RAG (Refactor TODO: Make RAG pipeline return actual usage)
             prompt_tokens = token_manager.estimate_tokens(request.message) 
@@ -49,7 +54,11 @@ class Orchestrator:
             )
         else:
             # Direct LLM Flow
-            llm_result = await groq_client.generate_response(request.message)
+            llm_result = await groq_client.generate_response(
+                request.message, 
+                model=request.model,
+                chat_history=request.chat_history
+            )
 
             usage_data = llm_result["usage"]
             

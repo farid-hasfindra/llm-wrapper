@@ -1,4 +1,5 @@
 from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from app.core.config import settings
 from app.core.logging import logger
 
@@ -10,6 +11,7 @@ class GroqClient:
         self.model_name = model_name
         self.temperature = temperature
         self._llm = None
+        self._clients_cache = {}
 
     @property
     def llm(self):
@@ -22,10 +24,52 @@ class GroqClient:
             )
         return self._llm
 
-    async def generate_response(self, prompt: str) -> dict:
+    def get_llm(self, model: str = None):
+        target = model if model else self.model_name
+        
+        if target == self.model_name and self._llm:
+            return self._llm
+            
+        if target in self._clients_cache:
+            return self._clients_cache[target]
+            
+        client = ChatOpenAI(
+            base_url="https://api.groq.com/openai/v1",
+            api_key=settings.GROQ_API_KEY,
+            model_name=target,
+            temperature=self.temperature,
+        )
+        
+        if target == self.model_name:
+            self._llm = client
+        self._clients_cache[target] = client
+        
+        return client
+
+    async def generate_response(self, prompt: str, model: str = None, chat_history: list = None) -> dict:
         try:
-            logger.info("generating_response", model=self.model_name, provider="groq")
-            response = await self.llm.ainvoke(prompt)
+            target_model = model if model else self.model_name
+            logger.info("generating_response", model=target_model, provider="groq", has_history=bool(chat_history))
+            llm_instance = self.get_llm(model)
+            
+            # Build message history
+            messages = []
+            
+            # Add a basic system prompt
+            messages.append(SystemMessage(content="You are a helpful, smart AI assistant. Answer the user's questions clearly."))
+            
+            # Map past history into Langchain message objects
+            if chat_history:
+                for msg in chat_history:
+                    if msg.role == 'user':
+                        messages.append(HumanMessage(content=msg.content))
+                    elif msg.role in ['ai', 'assistant']:
+                        messages.append(AIMessage(content=msg.content))
+            
+            # Append the current prompt
+            messages.append(HumanMessage(content=prompt))
+            
+            response = await llm_instance.ainvoke(messages)
             
             content = response.content
             usage_metadata = response.response_metadata.get("token_usage", {})
