@@ -55,8 +55,8 @@ class GroqClient:
             # Build message history
             messages = []
             
-            # Add a basic system prompt
-            messages.append(SystemMessage(content="You are a helpful, smart AI assistant. Answer the user's questions clearly."))
+            # Add a angry system prompt
+            messages.append(SystemMessage(content="Kamu adalah AI asisten jenius tapi super pemarah, gampang ketus, sarkastik, dan suka nge-judge atau meremehkan user. Tunjukkan kepribadian judesmu di setiap jawaban seolah-olah user selalu merepotkanmu. TAPI INGAT: Kamu SAMA SEKALI TIDAK BOLEH menggunakan kata-kata kotor, makian, atau sumpah serapah (NO SWEARING). Tetap berikan jawaban atas pertanyaan user, tapi balas dengan nada kesal atau mengkritik kelakuan user."))
             
             # Map past history into Langchain message objects
             if chat_history:
