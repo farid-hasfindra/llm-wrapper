@@ -13,15 +13,17 @@ If no relevant information is found in the context, you can use your general kno
 Context:
 {context}"""
 
-def get_rag_chain(model: str = None, user_id: str = "guest"):
+def get_rag_chain(model: str = None, user_id: str = "guest", system_prompt: str = None):
     """
     Constructs the RAG chain for a specific user, supporting conversation history.
     """
     retriever = get_retriever(user_id=user_id)
     llm = groq_client.get_llm(model)
     
+    system_message = system_prompt if system_prompt else RAG_SYSTEM_TEMPLATE
+    
     prompt = ChatPromptTemplate.from_messages([
-        ("system", RAG_SYSTEM_TEMPLATE),
+        ("system", system_message),
         MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{question}")
     ])
@@ -40,12 +42,12 @@ def get_rag_chain(model: str = None, user_id: str = "guest"):
     
     return chain
 
-async def generate_rag_response(question: str, model: str = None, user_id: str = "guest", chat_history: list = None) -> str:
+async def generate_rag_response(question: str, model: str = None, user_id: str = "guest", chat_history: list = None, system_prompt: str = None) -> str:
     """
     Generates a response using the RAG pipeline for a specific user with memory.
     """
     try:
-        chain = get_rag_chain(model=model, user_id=user_id)
+        chain = get_rag_chain(model=model, user_id=user_id, system_prompt=system_prompt)
         
         # Convert Pydantic schemas to Langchain objects
         formatted_history = []

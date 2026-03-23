@@ -30,7 +30,8 @@ class Orchestrator:
                 request.message, 
                 model=request.model, 
                 user_id=user_id,
-                chat_history=request.chat_history
+                chat_history=request.chat_history,
+                system_prompt=request.system_prompt
             )
             
             # Estimate tokens for RAG (Refactor TODO: Make RAG pipeline return actual usage)
@@ -57,7 +58,8 @@ class Orchestrator:
             llm_result = await groq_client.generate_response(
                 request.message, 
                 model=request.model,
-                chat_history=request.chat_history
+                chat_history=request.chat_history,
+                system_prompt=request.system_prompt
             )
 
             usage_data = llm_result["usage"]

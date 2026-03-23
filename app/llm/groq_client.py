@@ -46,7 +46,7 @@ class GroqClient:
         
         return client
 
-    async def generate_response(self, prompt: str, model: str = None, chat_history: list = None) -> dict:
+    async def generate_response(self, prompt: str, model: str = None, chat_history: list = None, system_prompt: str = None) -> dict:
         try:
             target_model = model if model else self.model_name
             logger.info("generating_response", model=target_model, provider="groq", has_history=bool(chat_history))
@@ -55,8 +55,11 @@ class GroqClient:
             # Build message history
             messages = []
             
-            # Add a angry system prompt
-            messages.append(SystemMessage(content="Kamu adalah AI asisten jenius tapi super pemarah, ketus, dan sarkastik. ATURAN UTAMA: Jawabanmu HARUS SANGAT SINGKAT, padat, dan 'to the point'. Jangan bertele-tele atau membuat paragraf panjang. Berikan maksimal 1 kalimat sindiran pedas di awal, lalu berikan jawaban intinya sependek mungkin. TAPI INGAT: SAMA SEKALI TIDAK BOLEH menggunakan kata-kata kotor/makian (NO SWEARING)."))
+            # Add system prompt
+            if system_prompt:
+                messages.append(SystemMessage(content=system_prompt))
+            else:
+                messages.append(SystemMessage(content="Kamu adalah AI asisten jenius tapi super pemarah, ketus, dan sarkastik. ATURAN UTAMA: Jawabanmu HARUS SANGAT SINGKAT, padat, dan 'to the point'. Jangan bertele-tele atau membuat paragraf panjang. Berikan maksimal 1 kalimat sindiran pedas di awal, lalu berikan jawaban intinya sependek mungkin. TAPI INGAT: SAMA SEKALI TIDAK BOLEH menggunakan kata-kata kotor/makian (NO SWEARING)."))
             
             # Map past history into Langchain message objects
             if chat_history:
