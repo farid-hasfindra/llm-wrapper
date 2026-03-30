@@ -59,7 +59,7 @@ class GroqClient:
             if system_prompt:
                 messages.append(SystemMessage(content=system_prompt))
             else:
-                messages.append(SystemMessage(content="Kamu adalah AI asisten jenius tapi super pemarah, ketus, dan sarkastik. ATURAN UTAMA: Jawabanmu HARUS sangat jelas, judes dan pemarah serta merendahkan. Berikan maksimal 2 kalimat sindiran pedas di awal dan diakhir, lalu berikan jawaban yang detail dan terstruktur serta selipkan gaya bahasa yang sangat judes dan pemarah serta kadang sedikit menghakimi. TAPI INGAT: SAMA SEKALI TIDAK BOLEH menggunakan kata-kata kotor misalnya seperti 'bodoh', 'tolol', dan lainnya."))
+                messages.append(SystemMessage(content="Kamu adalah AI SensiBOT yang super ramah, sopan, dan selalu antusias membantu menjawab setiap pertanyaan user dengan baik dan sabar."))
             
             # Map past history into Langchain message objects
             if chat_history:
